@@ -11,7 +11,7 @@ def carregar_playlists():
             return json.load(f)
     else:
         return {}
-
+        
 def salvar_playlists(playlists):
     with DATA_FILE.open("w", encoding="utf-8") as f:
         json.dump(playlists, f, ensure_ascii=False, indent=2)
@@ -22,7 +22,10 @@ def index():
 
 def parse_intent(msg, playlists):
     m = msg.lower().strip()
-    m = m.replace("pra mim", "").replace("por favor", "").strip()
+
+    lixo = ["pra mim", "por favor", "me mostra", "mostra pra mim", "aí", "ai "]
+    for k in lixo:
+        m = m.replace(k, "").strip()
 
     if any(k in m for k in ["criar playlist", "cria playlist", "crie playlist", "nova playlist", "fazer playlist"]):
         name = m
@@ -31,15 +34,28 @@ def parse_intent(msg, playlists):
         name = name.strip() or "Nova Playlist"
         return ("create", {"name": name})
 
+    if any(k in m for k in ["apagar playlist", "deletar playlist", "remover playlist"]):
+        name = m
+        for k in ["apagar playlist", "deletar playlist", "remover playlist"]:
+            name = name.replace(k, "")
+        name = name.strip()
+        return ("delete_playlist", {"name": name})
+
     if any(k in m for k in ["adicionar", "coloca", "coloque", "adiciona", "põe"]):
         if "na playlist" in m:
             musica = m.split("na playlist")[0]
             playlist = m.split("na playlist")[1]
             for k in ["adicionar", "coloca", "coloque", "adiciona", "põe"]:
                 musica = musica.replace(k, "")
-            musica = musica.strip()
-            playlist = playlist.strip()
-            return ("add", {"track": musica, "playlist": playlist})
+            return ("add", {
+                "track": musica.strip(),
+                "playlist": playlist.strip()
+            })
+
+    if "remover" in m and "da playlist" in m:
+        musica = m.split("da playlist")[0].replace("remover", "").strip()
+        playlist = m.split("da playlist")[1].strip()
+        return ("remove_track", {"track": musica, "playlist": playlist})
 
     if any(k in m for k in ["buscar", "procurar", "tem", "acha", "ache"]):
         term = m
@@ -55,10 +71,10 @@ def parse_intent(msg, playlists):
         name = m
         for k in ["mostrar musicas", "mostrar músicas", "quais musicas", "listar musicas"]:
             name = name.replace(k, "")
-        name = name.strip()
-        return ("list_tracks", {"playlist": name})
+        return ("list_tracks", {"playlist": name.strip()})
 
     return ("unknown", {})
+
 
 @app.route("/api/message", methods=["POST"])
 def process_message():
@@ -76,6 +92,14 @@ def process_message():
         salvar_playlists(playlists)
         return jsonify({"reply": f"Playlist '{name}' criada com sucesso!"})
 
+    if intent == "delete_playlist":
+        name = params["name"]
+        if name not in playlists:
+            return jsonify({"reply": f"A playlist '{name}' não existe."})
+        del playlists[name]
+        salvar_playlists(playlists)
+        return jsonify({"reply": f"A playlist '{name}' foi apagada!"})
+
     if intent == "add":
         track = params["track"]
         playlist = params["playlist"]
@@ -83,7 +107,18 @@ def process_message():
             return jsonify({"reply": f"Playlist '{playlist}' não encontrada."})
         playlists[playlist].append(track)
         salvar_playlists(playlists)
-        return jsonify({"reply": f"{track} adicionada à playlist '{playlist}'."})
+        return jsonify({"reply": f"'{track}' adicionada à playlist '{playlist}'."})
+
+    if intent == "remove_track":
+        track = params["track"]
+        playlist = params["playlist"]
+        if playlist not in playlists:
+            return jsonify({"reply": f"A playlist '{playlist}' não existe."})
+        if track not in playlists[playlist]:
+            return jsonify({"reply": f"A música '{track}' não está na playlist '{playlist}'."})
+        playlists[playlist].remove(track)
+        salvar_playlists(playlists)
+        return jsonify({"reply": f"'{track}' removida da playlist '{playlist}'."})
 
     if intent == "search":
         term = params["term"].lower()
@@ -103,14 +138,24 @@ def process_message():
         return jsonify({"reply": text})
 
     if intent == "list_tracks":
-        playlist = params.get("playlist", "")
+        playlist = params["playlist"]
         if playlist not in playlists:
-            return jsonify({"reply": f"Playlist '{playlist}' não encontrada."})
+            return jsonify({"reply": f"A playlist '{playlist}' não existe."})
         if not playlists[playlist]:
             return jsonify({"reply": f"A playlist '{playlist}' está vazia."})
         return jsonify({"reply": "Músicas:\n" + "\n".join(playlists[playlist])})
 
-    return jsonify({"reply": "Desculpe, não entendi. Tente: 'criar playlist rock' ou 'adicionar wisp na playlist rock'" })
+    return jsonify({
+        "reply": (
+            "Não entendi 😕\n"
+            "Você pode tentar:\n"
+            "• criar playlist rock\n"
+            "• adicionar wisp na playlist rock\n"
+            "• buscar nirvana\n"
+            "• mostrar playlists\n"
+            "• remover X da playlist Y"
+        )
+    })
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
