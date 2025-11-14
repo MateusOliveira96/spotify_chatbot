@@ -13,21 +13,21 @@
         #chatWrap { flex:1; padding:30px; display:flex; flex-direction:column; }
         h2 { color:#1DB954; font-size:28px; margin:0 0 20px 0; }
         #messages { flex:1; padding:15px; background:#181818; border-radius:10px; overflow-y:auto; border:1px solid #333; }
-        .msg { margin:12px 0; padding:12px 18px; border-radius:15px; max-width:75%; display:flex; gap:10px; align-items:flex-start; animation:fadeIn 0.2s ease; }
+        .msg { margin:12px 0; padding:12px 18px; border-radius:15px; max-width:75%; display:flex; gap:10px; align-items:flex-start; animation:fadeIn 0.25s ease; }
         @keyframes fadeIn { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
         .user { background:#1DB954; color:#000; margin-left:auto; flex-direction:row-reverse; }
         .bot { background:#333; }
-        .avatar { width:35px; height:35px; border-radius:50%; object-fit:cover; }
+        .avatar { width:40px; height:40px; border-radius:50%; object-fit:cover; }
         #inputContainer { display:flex; margin-top:20px; }
         #input { flex:1; padding:15px; background:#282828; border:1px solid #333; color:#fff; border-radius:10px 0 0 10px; outline:none; font-size:16px; }
         #sendBtn { background:#1DB954; padding:0 25px; border:none; border-radius:0 10px 10px 0; cursor:pointer; color:#000; font-weight:bold; font-size:16px; }
-        #typing { color:#1DB954; font-size:14px; margin:5px 0 0 10px; display:none; }
-        #micBtn { background:#282828; border:1px solid #333; width:50px; border-radius:10px; margin-left:10px; cursor:pointer; }
-        #micBtn img { width:25px; margin:8px auto; display:block; filter:invert(1); }
+        #typing { color:#1DB954; font-size:14px; margin:10px 0; display:none; animation:fadeIn 0.3s; }
         @media (max-width:700px) { #sidebar{display:none;} body{flex-direction:column;} }
     </style>
 </head>
+
 <body>
+
     <div id="sidebar">
         <img src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg">
         <div class="menu-item">🏠 Home</div>
@@ -37,13 +37,13 @@
 
     <div id="chatWrap">
         <h2>Chatbot Spotify</h2>
+
         <div id="messages"></div>
         <div id="typing">Bot está digitando...</div>
 
         <div id="inputContainer">
             <input id="input" placeholder="Digite uma mensagem...">
             <button id="sendBtn" onclick="sendMessage()">Enviar</button>
-            <button id="micBtn"><img src="https://www.svgrepo.com/show/533283/microphone.svg"></button>
         </div>
     </div>
 
@@ -56,18 +56,17 @@ function addMessage(who, text) {
     const avatar = document.createElement("img");
     avatar.className = "avatar";
 
-    
     avatar.src = who === "user"
-        ? "{{ url_for('static', filename='avatars/bot.png') }}"
-        : "{{ url_for('static', filename='avatars/bot.png') }}";
+        ? "{{ url_for('static', filename='avatars/chatbot.png') }}"
+        : "{{ url_for('static', filename='avatars/chatbot.png') }}";
 
     const p = document.createElement("span");
-    p.textContent = text;
+    p.innerHTML = text.replace(/\n/g, "<br>");
 
     msg.appendChild(avatar);
     msg.appendChild(p);
-
     div.appendChild(msg);
+
     div.scrollTop = div.scrollHeight;
 }
 
@@ -90,27 +89,32 @@ async function sendMessage() {
 
     const data = await resp.json();
 
-    setTimeout(()=>{
-        typing.style.display="none";
+    setTimeout(() => {
+        typing.style.display = "none";
         addMessage("bot", data.reply);
-    }, 600);
+    }, 700);
 }
-   
-window.onload = () => {
-    addMessage("bot",
-        "Olá! 👋 Sou seu assistente do Spotify.\n\n" +
-        "Aqui estão alguns comandos que você pode usar:\n" +
-        "🎵 **buscar X** – busca uma música\n" +
-        "📀 **criar playlist X** – cria uma playlist\n" +
-        "➕ **adicionar Y na playlist X** – adiciona uma música\n" +
-        "📋 **mostrar playlists** – lista suas playlists\n" +
-        "❌ **remover X da playlist Y** – remove uma música\n\n" +
-        "Me diga o que deseja fazer! 😄"
-    );
-};
 
+window.onload = () => {
+    setTimeout(() => {
+        document.getElementById("typing").style.display = "block";
+    }, 300);
+
+    setTimeout(() => {
+        document.getElementById("typing").style.display = "none";
+
+        addMessage("bot",
+        "Olá! 👋 Sou seu assistente do Spotify.<br><br>" +
+        "Aqui estão os comandos que você pode usar:<br><br>" +
+        "• 🎵 <b>buscar X</b> — procura uma música<br>" +
+        "• 📀 <b>criar playlist X</b> — cria uma playlist<br>" +
+        "• ➕ <b>adicionar Y na playlist X</b> — adiciona música<br>" +
+        "• ❌ <b>remover Y da playlist X</b> — remove música<br>" +
+        "• 📋 <b>mostrar playlists</b> — lista suas playlists<br><br>" +
+        "O que deseja fazer? 😄");
+    }, 1500);
+};
 </script>
 
 </body>
 </html>
-
