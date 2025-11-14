@@ -95,6 +95,20 @@ async function sendMessage() {
         addMessage("bot", data.reply);
     }, 600);
 }
+   
+window.onload = () => {
+    addMessage("bot",
+        "Olá! 👋 Sou seu assistente do Spotify.\n\n" +
+        "Aqui estão alguns comandos que você pode usar:\n" +
+        "🎵 **buscar X** – busca uma música\n" +
+        "📀 **criar playlist X** – cria uma playlist\n" +
+        "➕ **adicionar Y na playlist X** – adiciona uma música\n" +
+        "📋 **mostrar playlists** – lista suas playlists\n" +
+        "❌ **remover X da playlist Y** – remove uma música\n\n" +
+        "Me diga o que deseja fazer! 😄"
+    );
+};
+
 </script>
 
 </body>
