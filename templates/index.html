@@ -34,43 +34,69 @@
         <div class="menu-item">🔍 Buscar</div>
         <div class="menu-item">🎵 Suas Playlists</div>
     </div>
+
     <div id="chatWrap">
         <h2>Chatbot Spotify</h2>
         <div id="messages"></div>
         <div id="typing">Bot está digitando...</div>
+
         <div id="inputContainer">
             <input id="input" placeholder="Digite uma mensagem...">
             <button id="sendBtn" onclick="sendMessage()">Enviar</button>
             <button id="micBtn"><img src="https://www.svgrepo.com/show/533283/microphone.svg"></button>
         </div>
     </div>
+
 <script>
 function addMessage(who, text) {
     const div = document.getElementById("messages");
     const msg = document.createElement("div");
     msg.className = "msg " + who;
+
     const avatar = document.createElement("img");
     avatar.className = "avatar";
-    avatar.src = who === "user" ? "https://i.imgur.com/3TL8uGg.png" : "https://i.imgur.com/eTjV5Yk.png";
+
+    
+    avatar.src = who === "user"
+        ? "{{ url_for('static', filename='avatars/bot.png') }}"
+        : "{{ url_for('static', filename='avatars/bot.png') }}";
+
     const p = document.createElement("span");
     p.textContent = text;
+
     msg.appendChild(avatar);
     msg.appendChild(p);
+
     div.appendChild(msg);
     div.scrollTop = div.scrollHeight;
 }
+
 async function sendMessage() {
     const input = document.getElementById("input");
     const text = input.value.trim();
     if (!text) return;
+
     addMessage("user", text);
     input.value = "";
+
     const typing = document.getElementById("typing");
     typing.style.display = "block";
-    const resp = await fetch("/api/message", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ message: text }) });
+
+    const resp = await fetch("/api/message", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ message: text })
+    });
+
     const data = await resp.json();
-    setTimeout(()=>{ typing.style.display="none"; addMessage("bot", data.reply); }, 600);
+
+    setTimeout(()=>{
+        typing.style.display="none";
+        addMessage("bot", data.reply);
+    }, 600);
 }
 </script>
+
 </body>
 </html>
+
