@@ -137,6 +137,41 @@ window.onload = () => {
         );
     }, 1500);
 };
+    document.getElementById("sendBtn").onclick = sendMessage;
+
+document.getElementById("input").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+        e.preventDefault();  
+        sendMessage();
+    }
+});
+
+    function sendMessage() {
+    const input = document.getElementById("input");
+    const text = input.value.trim();
+    if (!text) return;
+
+    addMessage("user", text);
+    input.value = "";
+
+    const typing = document.getElementById("typing");
+    typing.style.display = "block";
+
+    fetch("/api/message", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ message: text })
+    })
+    .then(res => res.json())
+    .then(data => {
+        setTimeout(() => {
+            typing.style.display = "none";
+            addMessage("bot", data.reply);
+        }, 600);
+    });
+}
+
+
 </script>
 
 
