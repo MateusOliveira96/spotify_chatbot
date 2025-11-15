@@ -48,6 +48,7 @@
     </div>
 
 <script>
+
 function addMessage(who, text) {
     const div = document.getElementById("messages");
     const msg = document.createElement("div");
@@ -55,9 +56,8 @@ function addMessage(who, text) {
 
     const avatar = document.createElement("img");
     avatar.className = "avatar";
-
     avatar.src = who === "user"
-        ? "{{ url_for('static', filename='avatars/chatbot.png') }}"
+        ? "{{ url_for('static', filename='avatars/user.png') }}"
         : "{{ url_for('static', filename='avatars/chatbot.png') }}";
 
     const p = document.createElement("span");
@@ -65,8 +65,8 @@ function addMessage(who, text) {
 
     msg.appendChild(avatar);
     msg.appendChild(p);
-    div.appendChild(msg);
 
+    div.appendChild(msg);
     div.scrollTop = div.scrollHeight;
 }
 
@@ -83,17 +83,40 @@ async function sendMessage() {
 
     const resp = await fetch("/api/message", {
         method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ message: text })
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({message: text})
     });
 
     const data = await resp.json();
-
     setTimeout(() => {
         typing.style.display = "none";
         addMessage("bot", data.reply);
-    }, 700);
+    }, 600);
 }
+
+document.getElementById("sendBtn").onclick = sendMessage;
+document.getElementById("input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sendMessage();
+});
+
+document.getElementById("homeBtn").onclick = () => {
+    document.getElementById("messages").innerHTML = "";
+    addMessage("bot", "🏠 Você está na Home!<br><br>Posso te ajudar com:<br>✔ criar playlist<br>✔ adicionar música<br>✔ remover música<br>✔ buscar música<br>✔ mostrar playlists");
+};
+
+document.getElementById("searchBtn").onclick = () => {
+    addMessage("bot", "🔍 O que deseja buscar? Digite algo como:<br><b>buscar love</b><br><b>buscar rock</b>");
+};
+
+document.getElementById("playlistsBtn").onclick = async () => {
+    const resp = await fetch("/api/message", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({message: "mostrar playlists"})
+    });
+    const data = await resp.json();
+    addMessage("bot", data.reply);
+};
 
 window.onload = () => {
     setTimeout(() => {
@@ -102,19 +125,20 @@ window.onload = () => {
 
     setTimeout(() => {
         document.getElementById("typing").style.display = "none";
-
-        addMessage("bot",
-        "Olá! 👋 Sou seu assistente do Spotify.<br><br>" +
-        "Aqui estão os comandos que você pode usar:<br><br>" +
-        "• 🎵 <b>buscar X</b> — procura uma música<br>" +
-        "• 📀 <b>criar playlist X</b> — cria uma playlist<br>" +
-        "• ➕ <b>adicionar Y na playlist X</b> — adiciona música<br>" +
-        "• ❌ <b>remover Y da playlist X</b> — remove música<br>" +
-        "• 📋 <b>mostrar playlists</b> — lista suas playlists<br><br>" +
-        "O que deseja fazer? 😄");
+        addMessage(
+            "bot",
+            "Olá! 👋<br><br>Eu entendo comandos como:<br>" +
+            "🎵 <b>buscar X</b><br>" +
+            "📀 <b>criar playlist X</b><br>" +
+            "➕ <b>adicionar Y na playlist X</b><br>" +
+            "❌ <b>remover Y da playlist X</b><br>" +
+            "📋 <b>mostrar playlists</b><br><br>" +
+            "Me diga o que deseja fazer! 😄"
+        );
     }, 1500);
 };
 </script>
+
 
 </body>
 </html>
