@@ -57,7 +57,7 @@ function addMessage(who, text) {
     const avatar = document.createElement("img");
     avatar.className = "avatar";
     avatar.src = who === "user"
-        ? "{{ url_for('static', filename='avatars/user.png') }}"
+        ? "{{ url_for('static', filename='avatars/chatbot.png') }}"
         : "{{ url_for('static', filename='avatars/chatbot.png') }}";
 
     const p = document.createElement("span");
